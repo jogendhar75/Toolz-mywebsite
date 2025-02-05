@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Personal Tools Hub</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Hello! Welcome to my Website</h1>
+        <nav>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#tools">Tools</a></li>
+                <li><a href="#add">Add Content</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Search Bar -->
+        <section id="search">
+            <input type="text" id="search-bar" placeholder="Search for tools or websites..." onkeyup="searchContent()">
+        </section>
+
+        <!-- Tools, Text, Files, and Website Add Section -->
+        <section id="add">
+            <h2>Add Content</h2>
+            <div id="add-options">
+                <button onclick="showAddTool()">Add Tool</button>
+                <button onclick="showAddText()">Add Text</button>
+                <button onclick="showAddFile()">Add File</button>
+                <button onclick="showAddWebsite()">Add Website</button>
+            </div>
+
+            <!-- Tool Add Form -->
+            <div id="add-tool-form" class="hidden">
+                <h3>Add Tool</h3>
+                <input type="text" id="tool-name" placeholder="Tool Name">
+                <input type="url" id="tool-link" placeholder="Tool Link">
+                <button onclick="addTool()">Add Tool</button>
+            </div>
+
+            <!-- Text Add Form -->
+            <div id="add-text-form" class="hidden">
+                <h3>Add Text</h3>
+                <textarea id="text-content" placeholder="Enter text here..."></textarea>
+                <button onclick="addText()">Add Text</button>
+            </div>
+
+            <!-- File Add Form -->
+            <div id="add-file-form" class="hidden">
+                <h3>Add File</h3>
+                <input type="file" id="file-input">
+                <button onclick="addFile()">Add File</button>
+            </div>
+
+            <!-- Website Add Form -->
+            <div id="add-website-form" class="hidden">
+                <h3>Add Website</h3>
+                <input type="url" id="website-link" placeholder="Enter website link">
+                <button onclick="addWebsite()">Add Website</button>
+            </div>
+        </section>
+
+        <!-- Display Added Content -->
+        <section id="content-display">
+            <h2>Added Content</h2>
+            <div id="tools-list"></div>
+            <div id="text-list"></div>
+            <div id="file-list"></div>
+            <div id="website-list"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Your Personal Tools Hub</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
