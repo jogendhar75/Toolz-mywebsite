@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ATJ User Recovery & Profile</title>
+<style>
+  body{
+    font-family:Poppins,system-ui;
+    background:linear-gradient(135deg,#4b6cb7,#182848);
+    color:#fff;min-height:100vh;margin:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card{
+    background:rgba(255,255,255,0.12);
+    backdrop-filter:blur(12px);
+    padding:32px 30px;border-radius:20px;
+    width:90%;max-width:460px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.35);
+  }
+  h2{text-align:center;margin-top:0;font-size:1.9rem;}
+  label{display:block;margin-top:14px;margin-bottom:6px;font-weight:600;}
+  input{
+    width:100%;padding:10px 12px;border:none;border-radius:8px;
+    font-size:15px;background:rgba(255,255,255,0.95);color:#111;
+  }
+  button{
+    width:100%;padding:12px;border:none;border-radius:8px;
+    margin-top:18px;font-weight:600;cursor:pointer;font-size:15px;
+  }
+  #verifyBtn{background:#2563eb;color:#fff;}
+  #verifyBtn:hover{background:#1d4ed8;}
+  #saveBtn{background:#16a34a;color:#fff;}
+  #saveBtn:hover{background:#138a3d;}
+  .linkBtns{display:flex;gap:10px;margin-top:14px;}
+  .linkBtns a{
+    flex:1;text-align:center;background:#1765d6;color:#fff;
+    padding:10px;border-radius:8px;text-decoration:none;font-weight:600;
+  }
+  .msg{margin-top:10px;text-align:center;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Account Recovery & Profile</h2>
+
+  <!-- STEP 1: Verify security answer -->
+  <div id="verifySection">
+    <label>Enter Your Security Answer</label>
+    <input id="verifySec" placeholder="Type your security answer">
+    <button id="verifyBtn">🔐 Verify</button>
+    <div id="verifyMsg" class="msg"></div>
+  </div>
+
+  <!-- STEP 2: Editable profile -->
+  <div id="profileSection" style="display:none;">
+    <label>Full Name</label>
+    <input id="fullname" placeholder="Your name">
+
+    <label>Email</label>
+    <input id="email" type="email" placeholder="your@email.com">
+
+    <label>Course / Branch</label>
+    <input id="course" placeholder="Ex: B.Tech AIML">
+
+    <label>Username</label>
+    <input id="u" readonly>
+
+    <label>New Password</label>
+    <input id="p" type="password">
+
+    <label>Security Answer</label>
+    <input id="s">
+
+    <button id="saveBtn">💾 Save Changes</button>
+    <div id="msg" class="msg"></div>
+
+    <div class="linkBtns">
+      <a href="index.html">🔙 Back to Login</a>
+      <a href="attendance.html">📋 Open Attendance</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// -------------- VARIABLES --------------
+const verifyBtn=document.getElementById('verifyBtn');
+const verifySec=document.getElementById('verifySec');
+const verifyMsg=document.getElementById('verifyMsg');
+const profileSection=document.getElementById('profileSection');
+const verifySection=document.getElementById('verifySection');
+
+const saveBtn=document.getElementById('saveBtn');
+const msg=document.getElementById('msg');
+const u=document.getElementById('u');
+const p=document.getElementById('p');
+const s=document.getElementById('s');
+const fullname=document.getElementById('fullname');
+const email=document.getElementById('email');
+const course=document.getElementById('course');
+
+// -------------- DETECT USERNAME --------------
+const allKeys = Object.keys(localStorage).filter(k=>k.startsWith("user_"));
+if(allKeys.length>0){
+  const lastUser = allKeys[allKeys.length-1]; // show last created user
+  const userData = JSON.parse(localStorage.getItem(lastUser));
+  u.value = userData.username || "";
+} else {
+  verifyMsg.textContent = "⚠️ No user data found in this browser.";
+}
+
+// -------------- VERIFY SECURITY ANSWER --------------
+verifyBtn.onclick=()=>{
+  const username=u.value.trim();
+  const stored=localStorage.getItem('user_'+username);
+  if(!stored){
+    verifyMsg.textContent='User not found in this browser.';
+    verifyMsg.style.color='#fca5a5';
+    return;
+  }
+  const data=JSON.parse(stored);
+  if(verifySec.value.trim()===data.security){
+    verifyMsg.textContent='✅ Verified! You can now edit your details.';
+    verifyMsg.style.color='#bbf7d0';
+    verifySection.style.display='none';
+    profileSection.style.display='block';
+    // Load stored info
+    fullname.value=data.fullname||'';
+    email.value=data.email||'';
+    course.value=data.course||'';
+    p.value=data.password||'';
+    s.value=data.security||'';
+  }else{
+    verifyMsg.textContent='❌ Incorrect security answer!';
+    verifyMsg.style.color='#fca5a5';
+  }
+};
+
+// -------------- SAVE CHANGES --------------
+saveBtn.onclick=()=>{
+  const username=u.value.trim();
+  const pass=p.value.trim();
+  const sec=s.value.trim();
+  const name=fullname.value.trim();
+  const mail=email.value.trim();
+  const crs=course.value.trim();
+
+  if(!username||!pass||!sec){
+    msg.textContent='Please fill all required fields';
+    msg.style.color='#fca5a5';
+    return;
+  }
+
+  const data={username,password:pass,security:sec,fullname:name,email:mail,course:crs};
+  localStorage.setItem('user_'+username,JSON.stringify(data));
+  localStorage.setItem('sec_'+username,sec);
+
+  msg.textContent='✅ Changes saved successfully!';
+  msg.style.color='#bbf7d0';
+
+  // Auto re-download updated file
+  const updatedHTML=document.documentElement.outerHTML;
+  const blob=new Blob([updatedHTML],{type:"text/html"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="user_data.html";
+  a.click();
+  setTimeout(()=>msg.textContent='',1500);
+};
+</script>
+</body>
+</html>

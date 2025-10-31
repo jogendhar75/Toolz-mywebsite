@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Attendance Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --accent1:#4b6cb7;--accent2:#182848;--bg:#f6f8fb;--text:#071025;
+      --success:#10b981;--danger:#ef4444;--warning:#f59e0b;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:"Poppins",sans-serif}
+    body{background:linear-gradient(135deg,#f3f4f7,#e2e6ef);color:var(--text);min-height:100vh;padding-bottom:50px;transition:background .4s ease,color .4s ease}
+    header{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#fff;text-align:center;padding:2rem 1rem 3rem;position:relative}
+    header img{width:100px;height:100px;border-radius:50%;border:4px solid #fff;object-fit:cover;margin-bottom:10px}
+    header h1{font-size:1.8rem}
+    #welcomeUser{position:absolute;top:15px;left:20px;background:rgba(255,255,255,.2);padding:8px 14px;border-radius:30px}
+    #logoutBtn{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 16px;border-radius:10px;cursor:pointer}
+    .navBtn{background:#fff;border:2px solid var(--accent1);color:var(--accent1);padding:10px 16px;margin:6px;border-radius:10px;cursor:pointer;font-weight:600;transition:.3s}
+    .navBtn.active,.navBtn:hover{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#fff}
+    .card{background:#fff;border-radius:15px;padding:20px;margin:15px auto;width:92%;max-width:1100px;box-shadow:0 8px 30px rgba(0,0,0,.08);transition:.3s}
+    .btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#fff;border:none;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer;transition:.3s}
+    .btn.ghost{background:#fff;color:var(--accent1);border:1px solid #ccc}
+    .btn.warn{background:linear-gradient(90deg,#f97316,#f59e0b);color:#fff}
+    input{padding:10px 12px;border:1px solid #ccc;border-radius:10px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:12px 10px;border-bottom:1px solid #eee;text-align:left}
+    th{background:#eef;color:#000;font-weight:700}
+    tr:hover{background:#f9faff}
+    .statusP{color:var(--success);background:rgba(16,185,129,0.1);padding:6px 12px;border-radius:20px}
+    .statusA{color:var(--danger);background:rgba(239,68,68,0.1);padding:6px 12px;border-radius:20px}
+    .statusN{color:#777;background:#f0f0f0;padding:6px 12px;border-radius:20px}
+    .holidayMsg{text-align:center;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:var(--warning);font-weight:700;border-radius:10px;padding:12px;margin-top:12px}
+    footer{text-align:center;color:#777;margin-top:20px}
+    /* 🌙 DARK MODE */
+    body.dark{
+      background:#0e0e0e;color:#f5f5f5;
+    }
+    body.dark .card{
+      background:#1a1a1a;border:1px solid #333;box-shadow:none;
+    }
+    body.dark th{
+      background:#222;color:#eee;border-bottom:1px solid #444;
+    }
+    body.dark td{
+      border-bottom:1px solid #333;
+    }
+    body.dark tr:hover{
+      background:#2a2a2a;
+    }
+    body.dark .navBtn{
+      background:#222;border:1px solid #555;color:#eee;
+    }
+    body.dark .navBtn.active,body.dark .navBtn:hover{
+      background:linear-gradient(90deg,#333,#555);color:#fff;border:none;
+    }
+    body.dark .btn.ghost{
+      background:#222;color:#eee;border:1px solid #555;
+    }
+    body.dark .btn{
+      background:linear-gradient(90deg,#555,#333);
+    }
+    body.dark .holidayMsg{
+      background:rgba(245,158,11,0.15);border-color:#555;color:#fcd34d;
+    }
+    body.dark input{
+      background:#1a1a1a;border:1px solid #444;color:#f5f5f5;
+    }
+    body.dark #logoutBtn,body.dark #welcomeUser{
+      background:rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+<header>
+  <span id="welcomeUser">Welcome, <span id="profileUser">Jogendhar</span></span>
+  <button id="logoutBtn" onclick="logout()">Logout</button>
+  <img src="IMG_profile.JPG" alt="Profile">
+  <h1>Banavath Jogendhar</h1>
+  <p>B.Tech (AIML) Student</p>
+</header>
+
+<nav style="text-align:center;margin-top:12px">
+  <button id="btnDaily" class="navBtn active">📅 Daily</button>
+  <button id="btnMonthly" class="navBtn">🗓 Monthly</button>
+  <button id="toggleTheme" class="navBtn">🌗 Theme</button>
+</nav>
+
+<section id="dailySection" class="card">
+  <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+    <label>Date:</label><input id="datePicker" type="date">
+    <label>Month:</label><input id="monthPicker" type="month">
+    <button id="openTodayBtn" class="btn ghost">Open Today</button>
+  </div>
+
+  <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+    <input id="subjectInput" type="text" placeholder="Add subject / type Holiday or Leave">
+    <input id="purposeInput" type="text" placeholder="Purpose (e.g. Festival)" style="display:none;">
+    <button id="addSubjectBtn" class="btn">Add</button>
+  </div>
+
+  <div id="holidayArea"></div>
+
+  <table id="attendanceTable">
+    <thead><tr><th>Subject</th><th>Mark (P/A)</th><th>Present</th><th>Absent</th></tr></thead>
+    <tbody id="attendanceTbody"></tbody>
+  </table>
+
+  <div id="summaryChips" style="margin-top:12px;"></div>
+
+  <div style="margin-top:12px;display:flex;gap:8px">
+    <button id="submitDayBtn" class="btn">✅ Submit</button>
+    <button id="resetDayBtn" class="btn ghost">♻ Reset</button>
+  </div>
+</section>
+
+<section id="monthlySection" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <h2>Monthly Summary</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="monthSummary" type="month">
+      <button id="downloadExcelBtn" class="btn">📥 Excel</button>
+      <button id="clearAllBtn" class="btn warn">🧹 Clear All</button>
+    </div>
+  </div>
+  <div id="monthGrid" style="margin-top:12px"></div>
+</section>
+
+<div id="toast" style="position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:8px 16px;border-radius:10px;opacity:0;transition:.3s;">toast</div>
+<footer>© 2025 Banavath Jogendhar | Attendance Tracker</footer>
+
+<script>
+const LS_SUBS='atj_subs',LS_RECS='atj_recs',LS_HOLS='atj_hols';
+let subjects=load(LS_SUBS,[]),records=load(LS_RECS,{}),holidays=load(LS_HOLS,{});
+const datePicker=document.getElementById('datePicker'),monthPicker=document.getElementById('monthPicker'),
+subjectInput=document.getElementById('subjectInput'),purposeInput=document.getElementById('purposeInput'),
+addSubjectBtn=document.getElementById('addSubjectBtn'),attendanceTbody=document.getElementById('attendanceTbody'),
+holidayArea=document.getElementById('holidayArea'),summaryChips=document.getElementById('summaryChips'),
+submitDayBtn=document.getElementById('submitDayBtn'),resetDayBtn=document.getElementById('resetDayBtn'),
+monthSummary=document.getElementById('monthSummary'),monthGrid=document.getElementById('monthGrid'),
+toastEl=document.getElementById('toast');
+function load(k,f){try{const r=localStorage.getItem(k);return r?JSON.parse(r):f}catch{return f}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+const pad=n=>String(n).padStart(2,'0');
+function formatYMD(d){return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function parseYMD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+datePicker.value=formatYMD(new Date());
+monthPicker.value=`${new Date().getFullYear()}-${pad(new Date().getMonth()+1)}`;
+monthSummary.value=monthPicker.value;
+function showToast(m){toastEl.textContent=m;toastEl.style.opacity=1;setTimeout(()=>toastEl.style.opacity=0,1500)}
+subjectInput.addEventListener('input',()=>{const v=subjectInput.value.trim().toLowerCase();purposeInput.style.display=(v==='holiday'||v==='leave')?'':'none'})
+addSubjectBtn.onclick=()=>{
+  const name=subjectInput.value.trim(),purpose=purposeInput.value.trim(),ymd=datePicker.value;
+  if(!name){showToast('Enter subject / Holiday / Leave');return;}
+  const low=name.toLowerCase();
+  if(low==='holiday'||low==='leave'){
+    if(!confirm(`Mark ${ymd} as ${name}?`))return;
+    holidays[ymd]={type:name.charAt(0).toUpperCase()+name.slice(1),purpose:purpose};
+    save(LS_HOLS,holidays);
+    subjectInput.value='';purposeInput.value='';purposeInput.style.display='none';
+    showToast(`${name} saved`);
+    render();return;
+  }
+  subjects.push({id:'s'+Date.now(),name});save(LS_SUBS,subjects);render();showToast('Added subject');
+}
+function render(){
+  const ymd=datePicker.value;
+  if(holidays[ymd]){
+    const info=holidays[ymd];
+    const icon=info.type==='Holiday'?'🎉':'🏖️';
+    holidayArea.innerHTML=`<div class='holidayMsg'>This day is marked as <strong>${info.type}</strong> ${icon} — Reason: ${info.purpose||'No reason'}</div>`;
+    document.getElementById('attendanceTable').style.display='none';
+  }else{
+    holidayArea.innerHTML='';document.getElementById('attendanceTable').style.display='';
+  }
+  attendanceTbody.innerHTML='';
+  const ym=monthPicker.value;const rec=(records[ym]&&records[ym][ymd])?records[ym][ymd]:{};
+  subjects.forEach(s=>{
+    const tr=document.createElement('tr');
+    const td1=document.createElement('td');td1.textContent=s.name;
+    const td2=document.createElement('td');
+    ['P','A'].forEach(m=>{
+      const b=document.createElement('button');b.className='btn';b.textContent=m;
+      b.onclick=()=>{setMark(ym,ymd,s.id,m);render();}
+      td2.appendChild(b);
+    });
+    const bc=document.createElement('button');bc.className='btn warn';bc.textContent='Clear';
+    bc.onclick=()=>{setMark(ym,ymd,s.id,'N');render();}
+    td2.appendChild(bc);
+    const st=rec[s.id]||'N';
+    const badge=document.createElement('span');badge.className=(st==='P'?'statusP':st==='A'?'statusA':'statusN');badge.textContent=(st==='P'?'Present':st==='A'?'Absent':'Not marked');
+    td2.appendChild(badge);
+    const td3=document.createElement('td'),td4=document.createElement('td');
+    const t=getTotals(s.id,ym);td3.textContent=t.p;td4.textContent=t.a;
+    [td1,td2,td3,td4].forEach(x=>tr.appendChild(x));attendanceTbody.appendChild(tr);
+  });
+}
+function setMark(ym,ymd,id,m){if(!records[ym])records[ym]={};if(!records[ym][ymd])records[ym][ymd]={};
+  if(m==='N')delete records[ym][ymd][id];else records[ym][ymd][id]=m;
+  save(LS_RECS,records);}
+function getTotals(id,ym){let p=0,a=0;if(records[ym])for(const d in records[ym]){const v=records[ym][d][id];if(v==='P')p++;if(v==='A')a++;}return{p,a}}
+submitDayBtn.onclick=()=>{save(LS_RECS,records);save(LS_HOLS,holidays);showToast('Saved')}
+resetDayBtn.onclick=()=>{const ymd=datePicker.value,ym=monthPicker.value;if(records[ym]&&records[ym][ymd])delete records[ym][ymd];if(holidays[ymd])delete holidays[ymd];save(LS_RECS,records);save(LS_HOLS,holidays);render();showToast('Reset done')}
+document.getElementById('btnDaily').onclick=()=>{document.getElementById('dailySection').style.display='';document.getElementById('monthlySection').style.display='none'}
+document.getElementById('btnMonthly').onclick=()=>{document.getElementById('dailySection').style.display='none';document.getElementById('monthlySection').style.display='';renderMonth()}
+document.getElementById('toggleTheme').onclick=()=>{document.body.classList.toggle('dark')}
+function renderMonth(){monthGrid.innerHTML='';const m=monthSummary.value;subjects.forEach(s=>{const t=getTotals(s.id,m);const total=t.p+t.a;const perc=total?Math.round(t.p/total*100):0;const div=document.createElement('div');div.textContent=`${s.name}: ${perc}% (${t.p}/${total})`;monthGrid.appendChild(div)});Object.keys(holidays).filter(d=>d.startsWith(m)).forEach(d=>{const i=holidays[d];const div=document.createElement('div');div.textContent=`${d} - ${i.type}: ${i.purpose}`;monthGrid.appendChild(div)})}
+document.getElementById('downloadExcelBtn').onclick=()=>{const m=monthSummary.value;const rows=[['Month','Subject','Present','Absent','%']];subjects.forEach(s=>{const t=getTotals(s.id,m);const total=t.p+t.a;const perc=total?Math.round(t.p/total*100):0;rows.push([m,s.name,t.p,t.a,perc+'%']);});const hol=Object.keys(holidays).filter(d=>d.startsWith(m));if(hol.length){rows.push([]);rows.push(['Date','Type','Reason']);hol.forEach(d=>{const i=holidays[d];rows.push([d,i.type,i.purpose]);})}
+const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Monthly');XLSX.writeFile(wb,`Attendance_${m}.xlsx`);showToast('Excel saved')}
+document.getElementById('clearAllBtn').onclick=()=>{if(!confirm('Clear all data?'))return;subjects=[];records={};holidays={};save(LS_SUBS,subjects);save(LS_RECS,records);save(LS_HOLS,holidays);render();showToast('Cleared')}
+function logout(){
+  // Remove user data from storage
+  localStorage.removeItem('currentUser');
+  alert('Logged out successfully!');
+  
+  // Redirect to login page (change name if different)
+  window.location.href = 'index.html';
+}
+render();
+</script>
+</body>
+</html>

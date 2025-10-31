@@ -1,83 +1,205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Personal Tools Hub</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ATJ Login</title>
+<style>
+body {
+  font-family: "Poppins", system-ui;
+  background: #f2f6fb;
+  margin: 0;
+  color: #111;
+}
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.card {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  padding: 28px;
+  text-align: center;
+}
+h2 {
+  color: #1765d6;
+  margin-bottom: 18px;
+}
+input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: 1.8px solid #ccc;
+  font-size: 15px;
+  outline: none;
+  transition: border .3s;
+}
+input:focus { border-color: #1765d6; }
+.btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #1765d6;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.btn:hover { background: #155bb3; }
+.link {
+  display: block;
+  margin-top: 12px;
+  color: #1765d6;
+  text-decoration: none;
+  font-weight: 500;
+}
+.msg {
+  margin-top: 10px;
+  font-weight: 600;
+}
+.msg.error { color: #b91c1c; }
+.msg.success { color: #0b7a3f; }
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #16a34a;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  font-weight: 600;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-10px);
+}
+</style>
 </head>
 <body>
-    <header>
-        <h1>Hello! Welcome to my Website</h1>
-        <nav>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#tools">Tools</a></li>
-                <li><a href="#add">Add Content</a></li>
-            </ul>
-        </nav>
-    </header>
+<div class="wrapper">
+  <div class="card">
+    <h2 id="formTitle">ATJ Login</h2>
 
-    <main>
-        <!-- Search Bar -->
-        <section id="search">
-            <input type="text" id="search-bar" placeholder="Search for tools or websites..." onkeyup="searchContent()">
-        </section>
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <input id="loginUser" type="text" placeholder="Username" autocomplete="off" />
+      <input id="loginPass" type="password" placeholder="Password" autocomplete="off" />
+      <button id="loginBtn" class="btn">Login</button>
+      <div id="loginMsg" class="msg"></div>
+      <a id="createLink" class="link">Create Account</a>
+      <a id="forgotLink" class="link">Forgot Password?</a>
+    </div>
 
-        <!-- Tools, Text, Files, and Website Add Section -->
-        <section id="add">
-            <h2>Add Content</h2>
-            <div id="add-options">
-                <button onclick="showAddTool()">Add Tool</button>
-                <button onclick="showAddText()">Add Text</button>
-                <button onclick="showAddFile()">Add File</button>
-                <button onclick="showAddWebsite()">Add Website</button>
-            </div>
+    <!-- SIGNUP FORM -->
+    <div id="signupForm" style="display:none;">
+      <input id="fullName" type="text" placeholder="Full Name" autocomplete="off" />
+      <input id="email" type="email" placeholder="Email" autocomplete="off" />
+      <input id="course" type="text" placeholder="Course / Branch" autocomplete="off" />
+      <input id="newUser" type="text" placeholder="Choose Username" autocomplete="off" />
+      <input id="newPass" type="password" placeholder="Choose Password" autocomplete="off" />
+      <input id="secAns" type="text" placeholder="Security Answer (for recovery)" autocomplete="off" />
+      <button id="signupBtn" class="btn">Create Account</button>
+      <div id="signupMsg" class="msg"></div>
+      <a id="backLogin" class="link">Back to Login</a>
+    </div>
+  </div>
+</div>
 
-            <!-- Tool Add Form -->
-            <div id="add-tool-form" class="hidden">
-                <h3>Add Tool</h3>
-                <input type="text" id="tool-name" placeholder="Tool Name">
-                <input type="url" id="tool-link" placeholder="Tool Link">
-                <button onclick="addTool()">Add Tool</button>
-            </div>
+<div id="toast" class="toast">Login Successful!</div>
 
-            <!-- Text Add Form -->
-            <div id="add-text-form" class="hidden">
-                <h3>Add Text</h3>
-                <textarea id="text-content" placeholder="Enter text here..."></textarea>
-                <button onclick="addText()">Add Text</button>
-            </div>
+<script>
+const loginForm=document.getElementById('loginForm');
+const signupForm=document.getElementById('signupForm');
+const formTitle=document.getElementById('formTitle');
+const toast=document.getElementById('toast');
 
-            <!-- File Add Form -->
-            <div id="add-file-form" class="hidden">
-                <h3>Add File</h3>
-                <input type="file" id="file-input">
-                <button onclick="addFile()">Add File</button>
-            </div>
+createLink.onclick=()=>{loginForm.style.display="none";signupForm.style.display="block";formTitle.textContent="Create Account";};
+backLogin.onclick=()=>{signupForm.style.display="none";loginForm.style.display="block";formTitle.textContent="ATJ Login";};
 
-            <!-- Website Add Form -->
-            <div id="add-website-form" class="hidden">
-                <h3>Add Website</h3>
-                <input type="url" id="website-link" placeholder="Enter website link">
-                <button onclick="addWebsite()">Add Website</button>
-            </div>
-        </section>
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2000);}
 
-        <!-- Display Added Content -->
-        <section id="content-display">
-            <h2>Added Content</h2>
-            <div id="tools-list"></div>
-            <div id="text-list"></div>
-            <div id="file-list"></div>
-            <div id="website-list"></div>
-        </section>
-    </main>
+// LOGIN
+loginBtn.onclick=()=>{
+  const u=loginUser.value.trim(),p=loginPass.value.trim(),m=document.getElementById('loginMsg');
+  m.textContent="";
+  if(!u||!p){m.textContent="Enter username and password.";m.className="msg error";return;}
+  const d=localStorage.getItem("user_"+u);
+  if(!d){m.textContent="User not found.";m.className="msg error";return;}
+  const o=JSON.parse(d);
+  if(o.password!==p){m.textContent="Incorrect password.";m.className="msg error";return;}
+  localStorage.setItem("currentUser",u);
+  showToast("✅ Login Successful!");
+  m.textContent="Login successful!";m.className="msg success";
+  setTimeout(()=>window.location.href="attendance.html",1200);
+};
 
-    <footer>
-        <p>&copy; 2025 Your Personal Tools Hub</p>
-    </footer>
+// FORGOT PASSWORD
+forgotLink.onclick=()=>window.open("user_data.html","_blank");
 
-    <script src="script.js"></script>
+// SIGNUP
+signupBtn.onclick=()=>{
+  const n=fullName.value.trim(),
+        e=email.value.trim(),
+        c=course.value.trim(),
+        u=newUser.value.trim(),
+        p=newPass.value.trim(),
+        s=secAns.value.trim(),
+        m=document.getElementById('signupMsg');
+  m.textContent="";
+  if(!n||!e||!c||!u||!p||!s){
+    m.textContent="Please fill all fields.";
+    m.className="msg error";
+    return;
+  }
+  if(localStorage.getItem("user_"+u)){
+    m.textContent="Username already exists!";
+    m.className="msg error";
+    return;
+  }
+
+  const data={fullname:n,email:e,course:c,username:u,password:p,security:s};
+  localStorage.setItem("user_"+u,JSON.stringify(data));
+  localStorage.setItem("sec_"+u,s);
+  m.textContent="Account created successfully!";
+  m.className="msg success";
+
+  // --- Generate personalized user_data.html ---
+  const recoveryHTML = `
+  <!doctype html>
+  <html lang='en'>
+  <head><meta charset='utf-8'><title>User Data - ${u}</title></head>
+  <body>
+  <script>
+    localStorage.setItem('user_${u}', JSON.stringify(${JSON.stringify(data)}));
+    alert('✅ Account Created! You can open user_data.html to recover or edit your info.');
+    location.href='user_data.html';
+  <\\/script>
+  </body>
+  </html>`;
+
+  const blob=new Blob([recoveryHTML],{type:"text/html"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="user_data.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  fullName.value=email.value=course.value=newUser.value=newPass.value=secAns.value="";
+};
+</script>
 </body>
 </html>
