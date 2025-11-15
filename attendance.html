@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Work</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        /* ===============================
+   Root Variables
+=============================== */
+        :root {
+            --primary-color: #4b6cb7;
+            --secondary-color: #182848;
+            --accent-color: #f97316;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --bg-color: #f4f6fb;
+            --card-bg: #fff;
+            --text-color: #222;
+            --border-radius: 12px;
+            --transition-speed: 0.3s;
+        }
+
+        /* ===============================
+   Global Styles
+=============================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            transition: all var(--transition-speed) ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ===============================
+   Header
+=============================== */
+        header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* ===============================
+   Navigation Buttons
+=============================== */
+        nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .navBtn {
+            padding: 10px 18px;
+            margin: 5px;
+            border-radius: var(--border-radius);
+            border: 2px solid var(--primary-color);
+            background: #fff;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .navBtn:hover {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .navBtn.active {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+        }
+
+        /* ===============================
+   Cards
+=============================== */
+        .card {
+            background: var(--card-bg);
+            margin: 15px auto;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            max-width: 900px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        h2,
+        h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        /* ===============================
+   Inputs and Selects
+=============================== */
+        input,
+        select {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+            transition: all var(--transition-speed) ease;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(75, 108, 183, 0.3);
+        }
+
+        /* ===============================
+   Buttons
+=============================== */
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-speed) ease;
+            margin: 3px 0;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.warn {
+            background: linear-gradient(90deg, var(--accent-color), #f59e0b);
+        }
+
+        .btn.success {
+            background: var(--success-color);
+        }
+
+        /* ===============================
+   Tables
+=============================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f9faff;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+            transition: background var(--transition-speed) ease;
+        }
+
+        /* ===============================
+   Daily Attendance Buttons
+=============================== */
+        .daily-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .daily-btn.present {
+            background: var(--success-color);
+            color: #fff;
+        }
+
+        .daily-btn.absent {
+            background: var(--error-color);
+            color: #fff;
+        }
+
+        /* ===============================
+   Popup
+=============================== */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===============================
+   Responsive
+=============================== */
+        @media (max-width: 768px) {
+            nav .navBtn {
+                padding: 8px 12px;
+                margin: 3px;
+                font-size: 14px;
+            }
+
+            table th,
+            table td {
+                padding: 8px 6px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Attendance Work</h1>
+    </header>
+
+    <nav>
+        <button id="btnManage" class="navBtn">Subjects</button>
+        <button id="btnDaily" class="navBtn">Attendance</button>
+        <button id="logoutBtn" class="navBtn">Logout</button>
+    </nav>
+
+    <!-- Subjects Section -->
+    <section id="subjectssection" class="card" style="display:none;">
+        <h2>Subjects</h2>
+        <div>
+            <input id="newsub" type="text" placeholder="Enter Subject Name">
+            <button id="addSubBtn" class="btn">Add</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject Name</th>
+                    <th>Subject Code</th>
+                    <th>Edit/Delete</th>
+                </tr>
+            </thead>
+            <tbody id="subTbody"></tbody>
+        </table>
+    </section>
+
+    <!-- Daily Attendance Section -->
+    <section id="attendanceSection" class="card" style="display:none;">
+        <h2>Daily Attendance</h2>
+        <div>
+            <label>Date:</label>
+            <input id="datepicker" type="date">
+            <button id="mark" class="btn warn">Holiday/Leave</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                </tr>
+            </thead>
+            <tbody id="dailyTbody"></tbody>
+        </table>
+        <div style="margin-top:10px;">
+            <button id="saveDayBtn" class="btn">Save</button>
+            <button id="resetDayBtn" class="btn warn">Reset</button>
+
+            <!-- Add this button somewhere in your Daily section -->
+            <button id="showMonthlyBtn" class="btn">Monthly Attendance</button>
+        </div>
+        <!-- Monthly Attendance Section -->
+        <section id="monthlySection" class="card" style="display:none;">
+            <h3>Monthly Attendance</h3>
+            <div>
+                <label>Month:</label>
+                <input id="monthPicker" type="month">
+                <button id="excelBtn" class="btn">Excel</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Subjects</th>
+                        <th>P/A</th>
+                        <th>%</th>
+                        <th>Edit/Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="monthlyTbody"></tbody>
+            </table>
+        </section>
+
+        <!-- Popup for Editing Daily Attendance -->
+        <div id="editPopup" class="popup"
+            style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);justify-content:center;align-items:center;">
+            <div class="popup-content"
+                style="background:#fff;padding:20px;border-radius:10px;max-width:400px;width:90%;">
+                <h3>Edit Attendance</h3>
+                <div id="popupBody"></div>
+                <div style="margin-top:10px;text-align:right">
+                    <button id="popupSave" class="btn">Save</button>
+                    <button id="popupClose" class="btn warn">Close</button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+    <script>
+        const LS_SUB = 'subs', LS_REC = 'recs', LS_HOL = 'hols';
+
+        let subs = JSON.parse(localStorage.getItem(LS_SUB)) || [];
+        let recs = JSON.parse(localStorage.getItem(LS_REC)) || {};
+        let hols = JSON.parse(localStorage.getItem(LS_HOL)) || {};
+
+        const datePicker = document.getElementById('datepicker');
+        datePicker.value = new Date().toISOString().slice(0, 10);
+
+        // ----------------- SUBJECTS -----------------
+        function saveSubs() {
+            localStorage.setItem(LS_SUB, JSON.stringify(subs));
+        }
+
+        function renderSubs(filter = '') {
+            const tb = document.getElementById('subTbody');
+            tb.innerHTML = '';
+            subs
+                .filter(s => s.name.toLowerCase().includes(filter.toLowerCase()))
+                .forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td>${s.name}</td>
+                <td>${s.id}</td>
+                <td>
+                    <button class='btn'>✏️</button>
+                    <button class='btn warn'>🗑️</button>
+                </td>`;
+                    const [editBtn, delBtn] = tr.querySelectorAll('button');
+
+                    editBtn.onclick = () => {
+                        const newName = prompt('Edit name', s.name);
+                        if (newName) {
+                            s.name = newName;
+                            saveSubs();
+                            renderSubs();
+                            renderDaily();
+                            renderMonthly();
+                        }
+                    };
+                    delBtn.onclick = () => {
+                        if (confirm('Delete subject?')) {
+                            subs = subs.filter(x => x.id !== s.id);
+                            saveSubs();
+                            renderSubs();
+                            renderDaily();
+                            renderMonthly();
+                        }
+                    };
+                    tb.appendChild(tr);
+                });
+        }
+
+        document.getElementById('addSubBtn').onclick = () => {
+            const name = document.getElementById('newsub').value.trim();
+            if (!name) return alert('Enter subject name');
+            subs.push({ id: 'S' + Date.now(), name });
+            saveSubs();
+            document.getElementById('newsub').value = '';
+            renderSubs();
+            renderDaily();
+        };
+
+        // ----------------- DAILY ATTENDANCE -----------------
+        function renderDaily() {
+            const tb = document.getElementById('dailyTbody');
+            tb.innerHTML = '';
+            const date = datePicker.value;
+            subs.forEach(s => {
+                const status = recs[date]?.[s.id] || '';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+            <td>${s.name}</td>
+            <td><button class="daily-btn" data-status="P">✔</button></td>
+            <td><button class="daily-btn" data-status="A">❌</button></td>`;
+                const [btnP, btnA] = tr.querySelectorAll('button');
+
+                // Set initial colors
+                if (status === 'P') btnP.classList.add('present');
+                if (status === 'A') btnA.classList.add('absent');
+
+                btnP.onclick = () => markAttendance('P', s.id);
+                btnA.onclick = () => markAttendance('A', s.id);
+
+                tb.appendChild(tr);
+            });
+        }
+
+        function markAttendance(status, subId) {
+            const date = datePicker.value;
+            if (!recs[date]) recs[date] = {};
+            recs[date][subId] = status;
+            localStorage.setItem(LS_REC, JSON.stringify(recs));
+
+            // Update button classes
+            const tb = document.getElementById('dailyTbody');
+            tb.querySelectorAll('tr').forEach(tr => {
+                const id = subs.find(s => s.name === tr.cells[0].innerText).id;
+                if (id !== subId) return;
+                const [btnP, btnA] = tr.querySelectorAll('button');
+                btnP.classList.toggle('present', status === 'P');
+                btnP.classList.remove('absent');
+                btnA.classList.toggle('absent', status === 'A');
+                btnA.classList.remove('present');
+            });
+        }
+
+        // ----------------- HOLIDAY / LEAVE -----------------
+        document.getElementById('mark').onclick = () => {
+            const d = datePicker.value;
+            const kind = prompt("Type 'holiday' or 'leave':") || '';
+            const reason = prompt("Reason:") || '';
+            if (kind) {
+                hols[d] = { type: kind.toUpperCase(), reason };
+                localStorage.setItem(LS_HOL, JSON.stringify(hols));
+                alert(`${kind} saved for ${d}`);
+                renderMonthly();
+            }
+        };
+
+        // ----------------- SAVE / RESET DAILY -----------------
+        document.getElementById('saveDayBtn').onclick = () => {
+            alert('Daily attendance saved!');
+            renderMonthly();
+        };
+
+        document.getElementById('resetDayBtn').onclick = () => {
+            const d = datePicker.value;
+            if (confirm('Reset attendance for today?')) {
+                delete recs[d];
+                localStorage.setItem(LS_REC, JSON.stringify(recs));
+                renderDaily();
+                renderMonthly();
+                alert('Attendance reset!');
+            }
+        };
+
+        // ----------------- MONTHLY -----------------
+        function renderMonthly() {
+            const month = document.getElementById('monthPicker').value;
+            const tb = document.getElementById('monthlyTbody');
+            tb.innerHTML = '';
+            Object.keys({ ...recs, ...hols })
+                .filter(d => !month || d.startsWith(month))
+                .sort()
+                .forEach(d => {
+                    const tr = document.createElement('tr');
+                    if (hols[d]) {
+                        tr.innerHTML = `
+                    <td>${d}</td>
+                    <td colspan="3">${hols[d].type} for: ${hols[d].reason}</td>
+                    <td>
+                        <button class='btn editBtn'>✏️</button>
+                        <button class='btn warn delBtn'>🗑️</button>
+                    </td>`;
+                        tr.querySelector('.editBtn').onclick = () => {
+                            const kind = prompt("Type 'holiday' or 'leave':", hols[d].type) || hols[d].type;
+                            const reason = prompt("Reason:", hols[d].reason) || hols[d].reason;
+                            hols[d] = { type: kind.toUpperCase(), reason };
+                            localStorage.setItem(LS_HOL, JSON.stringify(hols));
+                            renderMonthly();
+                        };
+                        tr.querySelector('.delBtn').onclick = () => {
+                            if (confirm(`Delete holiday/leave for ${d}?`)) {
+                                delete hols[d];
+                                localStorage.setItem(LS_HOL, JSON.stringify(hols));
+                                renderMonthly();
+                            }
+                        };
+                    } else {
+                        const r = recs[d] || {};
+                        const p = Object.values(r).filter(x => x === 'P').length;
+                        const a = Object.values(r).filter(x => x === 'A').length;
+                        const perc = p + a ? Math.round((p / (p + a)) * 100) : 0;
+                        const names = Object.keys(r).map(id => subs.find(s => s.id === id)?.name || id).join(', ');
+                        tr.innerHTML = `
+                    <td>${d}</td>
+                    <td>${names}</td>
+                    <td>${p}/${a}</td>
+                    <td>${perc}%</td>
+                    <td>
+                        <button class='btn editBtn'>✏️</button>
+                        <button class='btn warn delBtn'>🗑️</button>
+                    </td>`;
+                        tr.querySelector('.editBtn').onclick = () => openEditPopup(d);
+                        tr.querySelector('.delBtn').onclick = () => {
+                            if (confirm(`Delete attendance for ${d}?`)) {
+                                delete recs[d];
+                                localStorage.setItem(LS_REC, JSON.stringify(recs));
+                                renderDaily();
+                                renderMonthly();
+                            }
+                        };
+                    }
+                    tb.appendChild(tr);
+                });
+        }
+
+        // ----------------- EDIT POPUP -----------------
+        function openEditPopup(date) {
+            const popup = document.getElementById('editPopup');
+            const body = document.getElementById('popupBody');
+            body.innerHTML = '';
+            const r = recs[date] || {};
+            subs.forEach(s => {
+                const val = r[s.id] || '';
+                const div = document.createElement('div');
+                div.style.margin = '5px 0';
+                div.innerHTML = `
+            ${s.name}: 
+            <select data-id="${s.id}">
+                <option value="">--</option>
+                <option value="P" ${val === 'P' ? 'selected' : ''}>P</option>
+                <option value="A" ${val === 'A' ? 'selected' : ''}>A</option>
+            </select>`;
+                body.appendChild(div);
+            });
+            popup.style.display = 'flex';
+
+            document.getElementById('popupSave').onclick = () => {
+                const r2 = {};
+                body.querySelectorAll('select').forEach(sel => {
+                    if (sel.value) r2[sel.dataset.id] = sel.value;
+                });
+                recs[date] = r2;
+                localStorage.setItem(LS_REC, JSON.stringify(recs));
+                popup.style.display = 'none';
+                renderDaily();
+                renderMonthly();
+            };
+            document.getElementById('popupClose').onclick = () => popup.style.display = 'none';
+        }
+
+        // ----------------- EXCEL EXPORT -----------------
+        document.getElementById('excelBtn').onclick = () => {
+            const rows = [['Date', 'Subjects', 'P/A', '%']];
+            Object.keys({ ...recs, ...hols }).sort().forEach(d => {
+                if (hols[d]) rows.push([d, '-', hols[d].type, hols[d].reason]);
+                else {
+                    const r = recs[d];
+                    const p = Object.values(r).filter(x => x === 'P').length;
+                    const a = Object.values(r).filter(x => x === 'A').length;
+                    const perc = p + a ? Math.round((p / (p + a)) * 100) : 0;
+                    const names = Object.keys(r).map(id => subs.find(s => s.id === id)?.name || id).join(', ');
+                    rows.push([d, names, p + '/' + a, perc + '%']);
+                }
+            });
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, 'Monthly');
+            XLSX.writeFile(wb, 'Attendance.xlsx');
+        };
+
+        // ----------------- NAVIGATION -----------------
+        function showSection(section) {
+            document.getElementById('subjectssection').style.display = section === 'subs' ? 'block' : 'none';
+            document.getElementById('attendanceSection').style.display = section === 'daily' ? 'block' : 'none';
+            document.querySelectorAll('.navBtn').forEach(btn => btn.classList.remove('active'));
+            if (section === 'subs') document.getElementById('btnManage').classList.add('active');
+            if (section === 'daily') document.getElementById('btnDaily').classList.add('active');
+        }
+
+        document.getElementById('btnManage').onclick = () => { showSection('subs'); renderSubs(); };
+        document.getElementById('btnDaily').onclick = () => { showSection('daily'); renderDaily(); renderMonthly(); };
+        document.getElementById('logoutBtn').onclick = () => { alert('Logged out!'); window.location.href = 'logout.html'; };
+        document.getElementById('showMonthlyBtn').onclick = () => document.getElementById('monthlySection').style.display = 'block';
+
+        // ----------------- INITIAL LOAD -----------------
+        renderSubs();
+        renderDaily();
+        renderMonthly();
+    </script>
+</body>
+
+</html>
